@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kanban
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  spring-boot-app:
+    build:
+      context: ./server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      JWT_SECRET: secret
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kanban
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_GENERATE_DDL: true
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SERVER_SERVLET_CONTEXT_PATH: /api/v1
+
+  react-app:
+    build:
+      context: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - spring-boot-app
+    environment:
+      REACT_APP_API_URL: http://localhost:8080/api/v1
+volumes:
+  mysql-data:
